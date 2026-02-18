@@ -2,6 +2,10 @@
 
 A multi-tool developer utility built with JavaFX and Groovy, designed for quick data manipulation, encoding, and visualization.
 
+| Default Light Mode | Default Dark Mode |
+| :---: | :---: |
+| ![Light Mode](Screenshot%202026-02-18%20174603.png) | ![Dark Mode](Screenshot%202026-02-18%20174626.png) |
+
 ## Features
 
 ### Text & Data Tools
