@@ -35,7 +35,12 @@ A multi-tool developer utility built with JavaFX and Groovy, designed for quick 
 - JDK 23 or higher
 - Gradle
 
-# Prebuilt Download:
+### Running the Application
+```bash
+./gradlew run
+```
+
+## Prebuilt Download:
 ### Supported Architectures
 - "windows-x64"
 - "mac-x64"
@@ -43,9 +48,9 @@ A multi-tool developer utility built with JavaFX and Groovy, designed for quick 
 - "linux-x64",
 - "linux-arm64"
 
-![Download](https://github.com/Electricane/DevTools-UI/releases/tag/Early-Access)
-
 ### Running the Application
 ```bash
-./gradlew run
+java -jar UI-1.2.0-STABLE-all.jar 
 ```
+### Download
+![Download](https://github.com/Electricane/DevTools-UI/releases/tag/Early-Access)
