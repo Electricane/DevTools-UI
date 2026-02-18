@@ -35,8 +35,8 @@ A multi-tool developer utility built with JavaFX and Groovy, designed for quick 
 - JDK 23 or higher
 - Gradle
 
-### Prebuilt Download:
-# Supported Architectures
+# Prebuilt Download:
+### Supported Architectures
 - "windows-x64"
 - "mac-x64"
 - "mac-arm64"
