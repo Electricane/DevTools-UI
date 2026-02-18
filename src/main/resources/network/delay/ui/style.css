@@ -1,0 +1,246 @@
+.root {
+    -my-text-main: #333333;
+    -my-bg-main: #ffffff;
+    -my-bg-secondary: #f3f3f3;
+    -my-bg-sidebar: #f8f9fa;
+    -my-bg-input: #ffffff;
+    -my-border-color: #e0e0e0;
+    -my-text-muted: #777777;
+    -my-accent-color: #0078d4;
+    -my-accent-hover: #f0f7ff;
+    -my-scroll-thumb: #cccccc;
+
+    -fx-font-family: "Segoe UI", system-ui, sans-serif;
+    -fx-background-color: -my-bg-main;
+}
+
+.root.dark-theme {
+    -my-text-main: #cccccc;
+    -my-bg-main: #1e1e1e;
+    -my-bg-secondary: #2d2d2d;
+    -my-bg-sidebar: #252526;
+    -my-bg-input: #333333;
+    -my-border-color: #3e3e42;
+    -my-text-muted: #999999;
+    -my-accent-color: #4fc1ff;
+    -my-accent-hover: #37373d;
+    -my-scroll-thumb: #4f4f4f;
+}
+.titled-pane {
+    -fx-text-fill: -my-text-main;
+}
+.titled-pane > .title {
+    -fx-background-color: -my-bg-sidebar;
+    -fx-border-color: transparent transparent -my-border-color transparent;
+}
+.titled-pane > .content {
+    -fx-background-color: -my-bg-sidebar;
+    -fx-border-color: transparent;
+}
+.titled-pane > .content > .tile-pane {
+    -fx-background-color: -my-bg-sidebar;
+}
+
+.label {
+    -fx-text-fill: -my-text-main;
+}
+
+.text-area, .text-field {
+    -fx-background-color: -my-border-color, -my-bg-input;
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 4;
+    -fx-text-fill: -my-text-main;
+    -fx-prompt-text-fill: -my-text-muted;
+    -fx-highlight-fill: -my-accent-color;
+}
+.text-area .content { -fx-background-color: transparent; }
+.text-area:focused, .text-field:focused {
+    -fx-background-color: -my-accent-color, -my-bg-input;
+}
+
+.button {
+    -fx-background-color: -my-bg-secondary;
+    -fx-text-fill: -my-text-main;
+    -fx-border-color: -my-border-color;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-padding: 8 16;
+}
+.button:hover { -fx-background-color: -my-accent-hover; -fx-border-color: -my-accent-color; }
+
+.split-pane {
+    -fx-background-color: -my-border-color, -my-bg-main;
+    -fx-background-insets: 0, 1;
+}
+.split-pane *.horizontal-grabber, .split-pane *.vertical-grabber {
+    -fx-padding: 0; -fx-background-color: transparent;
+}
+.split-pane:horizontal > .split-pane-divider {
+    -fx-background-color: -my-border-color;
+    -fx-padding: 0 1 0 1;
+}
+
+.scroll-bar { -fx-background-color: transparent; }
+.scroll-bar .thumb {
+    -fx-background-color: -my-scroll-thumb;
+    -fx-background-radius: 10;
+}
+.scroll-bar .increment-button, .scroll-bar .decrement-button {
+    -fx-shape: " "; -fx-padding: 0;
+}
+
+.scroll-pane {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+}
+
+.vbox, .hbox {
+    -fx-background-color: transparent;
+}
+
+.tab-pane .tab-header-area .tab-header-background { -fx-background-color: -my-bg-secondary; }
+.tab { -fx-background-color: transparent; -fx-padding: 10 20; }
+.tab:selected {
+    -fx-background-color: -my-bg-main;
+    -fx-border-color: transparent transparent -my-accent-color transparent;
+    -fx-border-width: 0 0 3 0;
+}
+.tab-label { -fx-text-fill: -my-text-muted; }
+.tab:selected .tab-label { -fx-text-fill: -my-accent-color; -fx-font-weight: bold; }
+
+.sidebar-scroll {
+    -fx-background-color: -my-bg-sidebar;
+    -fx-background: -my-bg-sidebar;
+    -fx-border-color: transparent -my-border-color transparent transparent;
+}
+
+.status-bar {
+    -fx-background-color: -my-bg-secondary;
+    -fx-border-color: -my-border-color transparent transparent transparent;
+}
+
+.list-view {
+    -fx-background-color: -my-border-color, -my-bg-input;
+    -fx-background-insets: 0, 1;
+}
+
+.list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: -my-text-main;
+}
+
+.list-cell:filled:selected {
+    -fx-background-color: -my-accent-color;
+    -fx-text-fill: white;
+}
+
+.list-cell:filled:hover {
+    -fx-background-color: -my-accent-hover;
+}
+
+.context-menu {
+    -fx-background-color: -my-border-color, -my-bg-secondary;
+    -fx-background-insets: 0, 1;
+    -fx-padding: 5;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+}
+
+.menu-item {
+    -fx-padding: 5 15 5 15;
+}
+
+.menu-item .label {
+    -fx-text-fill: -my-text-main;
+}
+
+.menu-item:focused {
+    -fx-background-color: -my-accent-color;
+}
+
+.menu-item:focused .label {
+    -fx-text-fill: white;
+}
+
+.regex-log, .match-log {
+    -fx-font-family: 'Monospaced';
+    -fx-background-color: -my-bg-input;
+    -fx-text-fill: -my-text-main;
+}
+
+.tree-view {
+    -fx-background-color: -my-bg-main;
+    -fx-background-insets: 0;
+}
+
+.tree-cell {
+    -fx-background-color: -my-bg-main;
+    -fx-text-fill: -my-text-main;
+}
+
+.tree-cell:selected {
+    -fx-background-color: -my-accent-color;
+    -fx-text-fill: white;
+}
+
+.tree-cell:hover {
+    -fx-background-color: -my-accent-hover;
+}
+
+.tree-cell > .tree-disclosure-node > .arrow {
+    -fx-background-color: -my-text-main;
+}
+
+.scroll-pane > .viewport {
+    -fx-background-color: -my-bg-main;
+}
+
+.json-tree-editor, .json-node-item {
+    -fx-background-color: -my-bg-main;
+}
+
+.line-number-gutter, .gutter {
+    -fx-background-color: -my-bg-secondary;
+    -fx-text-fill: -my-text-muted;
+    -fx-border-color: transparent -my-border-color transparent transparent;
+}
+
+.tool-pane {
+    -fx-background-color: -my-bg-main;
+}
+
+.text-field, .text-area {
+    -fx-background-color: -my-border-color, -my-bg-input;
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 4;
+    -fx-text-fill: -my-text-main;
+}
+
+.text-field:readonly, .text-field:disabled {
+    -fx-opacity: 0.8;
+    -fx-background-color: -my-border-color, -my-bg-secondary;
+}
+
+.context-menu .separator:horizontal .line {
+    -fx-border-color: -my-border-color transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+}
+
+.text-area, .text-area .content, .text-area .scroll-pane {
+    -fx-background-color: transparent, -my-bg-input;
+    -fx-background-insets: 0, 1;
+}
+
+.gutter, .line-number-gutter {
+    -fx-background-color: -my-bg-secondary;
+    -fx-border-color: transparent -my-border-color transparent transparent;
+}
+
+.text-area:focused, .text-field:focused {
+    -fx-background-color: -my-accent-color, -my-bg-input;
+    -fx-background-insets: -0.2, 1;
+}
+
+.tree-view, .tree-cell {
+    -fx-control-inner-background: -my-bg-main;
+}
