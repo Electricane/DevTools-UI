@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "network.delay.ui"
-version = "1.2.0-STABLE"
+version = "1.2.1-STABLE"
 
 repositories {
     mavenCentral()

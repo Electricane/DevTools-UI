@@ -31,7 +31,7 @@ class HelloApplication extends Application {
     private TabPane tabPane = new TabPane()
     private Label statusCpu = new Label("CPU: 0%")
     private Label statusRam = new Label("RAM: 0MB")
-    private final String version = "v1.2.0-STABLE"
+    private final String version = "v1.2.1-STABLE"
     private boolean isDarkMode = false
     private final File configFile = new File("config.properties")
 
