@@ -6,16 +6,20 @@ import groovy.transform.CompileStatic
 class JsonNodeItem {
     String key
     String value
-    boolean isObject = false
+    boolean isObject
+    boolean isArray
 
-    JsonNodeItem(String key, String value, boolean isObject = false) {
+    JsonNodeItem(String key, String value, boolean isObject, boolean isArray = false) {
         this.key = key
         this.value = value
         this.isObject = isObject
+        this.isArray = isArray
     }
 
     @Override
     String toString() {
-        return isObject ? "$key { }" : "$key: $value"
+        if (isObject) return key + " { }"
+        if (isArray) return key + " [ ]"
+        return "${key}: ${value}"
     }
 }

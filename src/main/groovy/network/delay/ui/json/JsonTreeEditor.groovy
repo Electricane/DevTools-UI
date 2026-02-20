@@ -14,7 +14,7 @@ import network.delay.ui.NumberUtils
 class JsonTreeEditor extends VBox {
     private TreeView<JsonNodeItem> treeView = new TreeView<>()
     private TextArea rawJsonArea = new TextArea()
-    private Gson gson = new GsonBuilder().setPrettyPrinting().create()
+    private Gson gson = new GsonBuilder().setPrettyPrinting().setLenient().create()
 
     JsonTreeEditor() {
         setSpacing(10d)
@@ -24,19 +24,19 @@ class JsonTreeEditor extends VBox {
 
         getStyleClass().add("json-tree-editor")
 
-        def rootItem = new TreeItem<JsonNodeItem>(new JsonNodeItem("root", "", true))
+        def rootItem = new TreeItem<JsonNodeItem>(new JsonNodeItem("root", "", true, false))
         rootItem.expanded = true
         treeView.root = rootItem
         treeView.editable = true
         
         setupCellFactory()
 
-        // Toolbar
         def toolbar = new HBox(10).with {
             alignment = Pos.CENTER_LEFT
             it.children.addAll(
-                new Button("+ Subnode").with { onAction = { addNode(false) }; it },
-                new Button("+ Object").with { onAction = { addNode(true) }; it },
+                new Button("+ Subnode").with { onAction = { addNode(false, false) }; it },
+                new Button("+ Object").with { onAction = { addNode(true, false) }; it },
+                new Button("+ Array").with { onAction = { addNode(false, true) }; it },
                 new Button("- Delete").with { onAction = { deleteNode() }; it },
                 new Separator(),
                 new Button("Build JSON ↓").with { onAction = { syncTreeToJson() }; it },
@@ -73,7 +73,7 @@ class JsonTreeEditor extends VBox {
                     JsonNodeItem item = getItem()
                     if (item != null) {
                         item.key = keyField.getText()
-                        if (!item.isObject) {
+                        if (!item.isObject && !item.isArray) {
                             item.value = valueField.getText()
                         }
                         
@@ -131,10 +131,11 @@ class JsonTreeEditor extends VBox {
                         editBox.setAlignment(Pos.CENTER_LEFT)
                     }
                     editBox.getChildren().clear()
+                    
                     keyField.setText(item.key)
                     editBox.getChildren().add(keyField)
                     
-                    if (!item.isObject) {
+                    if (!item.isObject && !item.isArray) {
                         valueField.setText(item.value)
                         editBox.getChildren().addAll(new Label(":"), valueField)
                     }
@@ -149,7 +150,7 @@ class JsonTreeEditor extends VBox {
         
         openInNumbers.setOnAction {
             def selected = treeView.selectionModel.selectedItem?.value
-            if (selected && !selected.isObject) {
+            if (selected && !selected.isObject && !selected.isArray) {
                 HelloApplication.requestTab("Numbers", new NumberUtils(selected.value))
             }
         }
@@ -158,14 +159,15 @@ class JsonTreeEditor extends VBox {
 
         treeView.setContextMenu(menu)
         menu.setOnShowing {
-            def val = treeView.selectionModel.selectedItem?.value?.value
-            openInNumbers.visible = val?.isLong() || val?.isBigDecimal()
+            def item = treeView.selectionModel.selectedItem?.value
+            openInNumbers.visible = item != null && !item.isObject && !item.isArray && 
+                                       (item.value?.isLong() || item.value?.isBigDecimal())
         }
     }
 
-    private void addNode(boolean isObject) {
+    private void addNode(boolean isObject, boolean isArray) {
         def selected = treeView.selectionModel.selectedItem ?: treeView.root
-        def newNode = new TreeItem<>(new JsonNodeItem("key", isObject ? "" : "value", isObject))
+        def newNode = new TreeItem<>(new JsonNodeItem("key", isObject || isArray ? "" : "value", isObject, isArray))
         selected.children.add(newNode)
         selected.expanded = true
     }
@@ -178,30 +180,40 @@ class JsonTreeEditor extends VBox {
     }
 
     private void syncTreeToJson() {
-        Map<String, Object> map = [:]
-        buildMapFromTree(treeView.root, map)
-        rawJsonArea.text = gson.toJson(map.get("root"))
+        Object result = buildDataFromTree(treeView.root)
+        rawJsonArea.text = gson.toJson(result)
     }
 
-    private void buildMapFromTree(TreeItem<JsonNodeItem> item, Map<String, Object> parentMap) {
+    private Object buildDataFromTree(TreeItem<JsonNodeItem> item) {
         def data = item.value
         if (data.isObject) {
-            Map<String, Object> childMap = [:]
-            item.children.each { buildMapFromTree(it, childMap) }
-            parentMap.put(data.key, childMap)
+            Map<String, Object> map = [:]
+            item.children.each { map.put(it.value.key, buildDataFromTree(it)) }
+            return map
+        } else if (data.isArray) {
+            List<Object> list = []
+            item.children.each { list.add(buildDataFromTree(it)) }
+            return list
         } else {
-            parentMap.put(data.key, data.value == "null" ? null : data.value)
+            return data.value == "null" ? null : data.value
         }
     }
 
     private void syncJsonToTree() {
         try {
             JsonElement rootElement = JsonParser.parseString(rawJsonArea.text)
-            if (!rootElement.isJsonObject()) throw new Exception("Root must be a JSON Object")
+            TreeItem<JsonNodeItem> newRoot
             
-            JsonObject jsonObject = rootElement.asJsonObject
-            def newRoot = new TreeItem<>(new JsonNodeItem("root", "", true))
-            parseJsonToTree(jsonObject, newRoot)
+            if (rootElement.isJsonObject()) {
+                newRoot = new TreeItem<>(new JsonNodeItem("root", "", true, false))
+                parseJsonObjectToTree(rootElement.asJsonObject, newRoot)
+            } else if (rootElement.isJsonArray()) {
+                newRoot = new TreeItem<>(new JsonNodeItem("root", "", false, true))
+                parseJsonArrayToTree(rootElement.asJsonArray, newRoot)
+            } else {
+                throw new Exception("Root must be a JSON Object or Array")
+            }
+            
             treeView.root = newRoot
             newRoot.expanded = true
         } catch (Exception e) {
@@ -209,21 +221,31 @@ class JsonTreeEditor extends VBox {
         }
     }
 
-    private void parseJsonToTree(JsonObject obj, TreeItem<JsonNodeItem> parent) {
+    private void parseJsonObjectToTree(JsonObject obj, TreeItem<JsonNodeItem> parent) {
         obj.entrySet().each { entry ->
-            JsonElement val = entry.value
-            
-            if (val.isJsonObject()) {
-                def child = new TreeItem<>(new JsonNodeItem(entry.key, "", true))
-                parent.children.add(child)
-                parseJsonToTree(val.asJsonObject, child)
-            } else if (val.isJsonNull()) {
-                parent.children.add(new TreeItem<>(new JsonNodeItem(entry.key, "null", false)))
-            } else if (val.isJsonArray()) {
-                parent.children.add(new TreeItem<>(new JsonNodeItem(entry.key, val.toString(), false)))
-            } else {
-                parent.children.add(new TreeItem<>(new JsonNodeItem(entry.key, val.asString, false)))
-            }
+            processJsonElement(entry.key, entry.value, parent)
+        }
+    }
+
+    private void parseJsonArrayToTree(JsonArray array, TreeItem<JsonNodeItem> parent) {
+        for (int i = 0; i < array.size(); i++) {
+            processJsonElement("[$i]", array.get(i), parent)
+        }
+    }
+
+    private void processJsonElement(String key, JsonElement val, TreeItem<JsonNodeItem> parent) {
+        if (val.isJsonObject()) {
+            def child = new TreeItem<>(new JsonNodeItem(key, "", true, false))
+            parent.children.add(child)
+            parseJsonObjectToTree(val.asJsonObject, child)
+        } else if (val.isJsonArray()) {
+            def child = new TreeItem<>(new JsonNodeItem(key, "", false, true))
+            parent.children.add(child)
+            parseJsonArrayToTree(val.asJsonArray, child)
+        } else if (val.isJsonNull()) {
+            parent.children.add(new TreeItem<>(new JsonNodeItem(key, "null", false, false)))
+        } else {
+            parent.children.add(new TreeItem<>(new JsonNodeItem(key, val.asString, false, false)))
         }
     }
 }

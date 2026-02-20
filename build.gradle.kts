@@ -1,105 +1,82 @@
-import org.gradle.api.tasks.compile.GroovyCompile
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
-    java
-    application
-    groovy
-    id("org.openjfx.javafxplugin") version "0.0.13"
-//    id("org.graalvm.buildtools.native") version "0.11.1"
-//    id("com.gluonhq.gluonfx-gradle-plugin") version "1.0.28"
+    id("java")
+    id("groovy")
+    id("application")
+    id("org.openjfx.javafxplugin") version "0.1.0"
+    id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
-group = "network.delay"
-version = "1.0-SNAPSHOT"
+group = "network.delay.ui"
+version = "1.2.0-STABLE"
 
 repositories {
     mavenCentral()
 }
 
-val junitVersion = "5.12.1"
-
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(23)
-    }
+javafx {
+    version = "21"
+    modules = listOf("javafx.controls", "javafx.fxml", "javafx.graphics", "javafx.web")
 }
 
-//tasks.withType<GroovyCompile> {
-//    groovyOptions.optimizationOptions?.set("indy", false)
-//}
+val targetPlatforms = mapOf(
+    "windows-x64" to "win",
+    "mac-x64" to "mac",
+    "mac-arm64" to "mac-aarch64",
+    "linux-x64" to "linux",
+    "linux-arm64" to "linux-aarch64"
+)
 
-tasks.withType<JavaCompile> {
-    options.encoding = "UTF-8"
+dependencies {
+    implementation("org.apache.groovy:groovy-all:4.0.21")
+    implementation("com.google.code.gson:gson:2.10.1")
+    implementation("com.auth0:java-jwt:4.4.0")
+
+    targetPlatforms.values.forEach { classifier ->
+        val jfxVersion = "21"
+        listOf("controls", "graphics", "base", "fxml").forEach { mod ->
+            runtimeOnly("org.openjfx:javafx-$mod:$jfxVersion:$classifier")
+        }
+    }
 }
 
 application {
     mainClass.set("network.delay.ui.Launcher")
 }
 
-javafx {
-    version = "21.0.6"
-    // Added javafx.web for QuadBlocks and javafx.media for general support
-    modules = listOf("javafx.controls", "javafx.fxml", "javafx.web", "javafx.media")
+targetPlatforms.forEach { (name, classifier) ->
+    tasks.register<ShadowJar>("shadowJar-$name") {
+        group = "distribution"
+        archiveClassifier.set(name)
+        
+        from(sourceSets.main.get().output)
+        configurations = listOf(project.configurations.runtimeClasspath.get())
+        
+        dependencies {
+            targetPlatforms.values.forEach { otherClassifier ->
+                exclude(dependency("org.openjfx:.*:.*:$otherClassifier"))
+            }
+            include(dependency("org.openjfx:.*:.*:$classifier"))
+            
+            include(dependency("org.codehaus.groovy:.*:.*"))
+            include(dependency("com.google.code.gson:.*:.*"))
+            include(dependency("com.auth0:.*:.*"))
+        }
+
+        manifest {
+            attributes["Main-Class"] = "network.delay.ui.Launcher"
+        }
+        mergeServiceFiles()
+    }
 }
 
-//graalvmNative {
-//    binaries {
-//        named("main") {
-//            javaLauncher.set(javaToolchains.launcherFor {
-//                languageVersion.set(JavaLanguageVersion.of(23))
-//                vendor.set(JvmVendorSpec.matching("GraalVM"))
-//            })
-//
-//            buildArgs.add("--initialize-at-run-time=com.sun.javafx.tk.quantum.QuantumToolkit")
-//            buildArgs.add("--initialize-at-run-time=com.sun.glass.ui.win.WinApplication")
-//            buildArgs.add("--initialize-at-run-time=com.sun.glass.ui.Cursor")
-//            buildArgs.add("--initialize-at-run-time=com.sun.glass.ui.Screen")
-//            buildArgs.add("--initialize-at-run-time=com.sun.prism.d3d.D3DResourceFactory")
-//
-//            buildArgs.add("--initialize-at-build-time=org.codehaus.groovy,groovy.lang")
-//
-//            buildArgs.add("-H:+AddAllCharsets")
-//            buildArgs.add("--allow-incomplete-classpath")
-//            buildArgs.add("--report-unsupported-elements-at-runtime")
-//
-//            buildArgs.add("-H:IncludeResources=.*\\.css$")
-//            buildArgs.add("-H:IncludeResources=.*\\.fxml$")
-//            buildArgs.add("-H:IncludeResources=.*\\.properties$")
-//
-////            buildArgs.add("--include-locals")
-//        }
-//    }
-//}
-
-//gluonfx { WIP
-//    runtimeArgs.add("--initialize-at-run-time=com.sun.javafx.tk.quantum.QuantumToolkit");
-//    runtimeArgs.add("--initialize-at-run-time=com.sun.glass.ui.win.WinApplication");
-//    runtimeArgs.add("--initialize-at-run-time=com.sun.glass.ui.Cursor");
-//    runtimeArgs.add("--initialize-at-run-time=com.sun.glass.ui.Screen");
-//    runtimeArgs.add("--initialize-at-run-time=com.sun.prism.d3d.D3DResourceFactory");
-//
-//    compilerArgs.add("--initialize-at-build-time=org.codehaus.groovy,groovy.lang");
-//    compilerArgs.add("--report-unsupported-elements-at-runtime");
-//    compilerArgs.add("--allow-incomplete-classpath");
-//    compilerArgs.add("-H:+AddAllCharsets");
-//    compilerArgs.add("-H:IncludeResources=.*\\.css$");
-//    compilerArgs.add("-H:IncludeResources=.*\\.fxml$");
-//    compilerArgs.add("-H:IncludeResources=.*\\.properties$");
-//}
-//
-dependencies {
-    implementation("org.apache.groovy:groovy:4.0.21")
-    implementation("com.google.code.gson:gson:2.11.0")
-    implementation("org.apache.groovy:groovy:4.0.21")
-
-    testImplementation("org.junit.jupiter:junit-jupiter-api:${junitVersion}")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
+tasks.build {
+    targetPlatforms.keys.forEach { name ->
+        dependsOn("shadowJar-$name")
+    }
 }
 
-tasks.withType<Test> {
-    useJUnitPlatform()
+tasks.withType<JavaCompile> {
+    options.encoding = "UTF-8"
 }
-
-//tasks.withType<org.gradle.api.tasks.compile.GroovyCompile> {
-//    groovyOptions.optimizationOptions?.set("indy", false)
-//}

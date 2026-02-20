@@ -200,13 +200,14 @@ class HelloApplication extends Application {
 //            createIconButton("!=", "Diff") {
 //                openTab("Diff Tool", new DiffTool())
 //            },
-            createIconButton("SQL", "SQL Formatter") { 
+            createIconButton("SQL", "SQL Formatter") {
                 openTab("SQL Formatter", new SqlTool())
             },
             createIconButton("CRON", "Cron Parser") { 
                 openTab("Cron Parser", new CronTool())
             }
         )
+
         def textToolsPane = new TitledPane("Text & Data", group1Box)
 
         def group2Box = new TilePane().with {
